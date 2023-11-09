@@ -76,6 +76,7 @@ export class Player extends Character {
 		const colliderPos = this.collider.position.clone();
 		this.model.position.z = colliderPos.z;
 		this.model.position.x = colliderPos.x;
+		
 		if (Game.game.cameraControl) Game.game.cameraControl.cameraMove(delta, colliderPos);
 		if (Game.game.lightControl) Game.game.lightControl.update();
 

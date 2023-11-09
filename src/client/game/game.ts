@@ -66,6 +66,10 @@ export class Game {
 				this.directionalLight = this.scene.getObjectByName(
 					"DirectionalLight"
 				) as THREE.DirectionalLight;
+				
+				//It seems like Enemies are scoped as enemiesArray
+				//So if i need to create a new player or enemy just need to instantiate new one and append new enemy's object to enemiesArray 
+				
 				// Load player
 				gltfLoader.load("models/player.glb", (gltf) => {
 					console.log(gltf);

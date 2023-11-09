@@ -15,11 +15,23 @@ import { Character, CharacterState } from "../Character";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
 import { convertToLambert, libAnim } from "../../GameHelpers";
 
+/**
+ * Self Todo notes to learn-apply processes
+ * 
+ * @todo Make enemy rotate left/right (euler,LookAt like) [ undone ]
+ * @todo Make enemy move to his forward - [ undone ]
+ * @todo Get Player position as a target and rotate enemy against player and move towards player [ undone ]
+ * 
+ */
+
 export class Enemy extends Character {
+	
 	direction: Vector3 = new Vector3();
 	speed: number = 3;
 	playerDetectingRadius: number = 0;
 	initialrot: Vector3 = new Vector3();
+
+	
 	constructor(gltf: GLTF, enemyPos: Vector3 = new Vector3()) {
 		super(gltf);
 
@@ -35,8 +47,11 @@ export class Enemy extends Character {
 
 		convertToLambert(this.model);
 
-		this.setState(CharacterState.MOVE);
-		// this.setState(CharacterState.IDLE);
+		//Enemy animation behaviors seems like linked to his CharacterState's state
+		// I set it to CharacterState.IDLE. Because Enemy must be stop at first according to case
+		
+		//this.setState(CharacterState.MOVE);
+		this.setState(CharacterState.IDLE);
 	}
 
 	update(delta: number): void {

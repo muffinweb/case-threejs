@@ -10,10 +10,14 @@ export enum CharacterState {
 	IDLE,
 	MOVE,
 }
+
 export enum CharactersTypes {
 	PLAYER,
 	ENEMY,
 }
+
+//This class seems extendible for child classes so it initialize quickly some basic stuffs.
+
 export class Character {
 	type: CharactersTypes = CharactersTypes.ENEMY;
 	model: Object3D;
@@ -41,6 +45,8 @@ export class Character {
 
 	stateUpdate() {}
 
+	// This method is being called every frame i guess and 
+	// at the time AnimationAction is not null|undefined, animation fadeout , animation set and play calls made here as well.
 	setState(state: CharacterState) {
 		if (state == this.currentState || !this.currentAnimation) return;
 		if (this.currentAnimation.getEffectiveWeight() < 1) return;
@@ -65,8 +71,12 @@ export class Character {
 				break;
 		}
 		if (anim) {
+			
+
+
 			const fadeTime = 0.2;
 			this.currentAnimation.fadeOut(fadeTime);
+			
 			anim.reset()
 				.setEffectiveTimeScale(timeScale)
 				.setEffectiveWeight(1)
@@ -84,6 +94,7 @@ export class Character {
 		this.currentState = state;
 	}
 
+	// This method seems it creates collider for instantiated model and attached to it with it's shape,
 	CreateCollider(): CANNON.Body {
 		const shape = new CANNON.Sphere(0.5);
 		let position = new Vector3();
