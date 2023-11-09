@@ -1,11 +1,12 @@
-import { AnimationAction, AnimationMixer, LoopRepeat, Object3D, Vector3 } from "three";
+import THREE, { AnimationAction, AnimationMixer, LoopRepeat, Object3D, Vector3 } from "three";
 import * as CANNON from "cannon-es";
 import { BODY_TYPES } from "cannon-es";
 import { clone as deepClone } from "../js/SkeletonUtils";
 import { randFloat } from "three/src/math/MathUtils";
-import { Game } from "../game";
+import {Game} from "./../game";
 import { Enemy } from "./Enemies/Enemy";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader";
+
 export enum CharacterState {
 	IDLE,
 	MOVE,
@@ -35,7 +36,10 @@ export class Character {
 	constructor(gltf: GLTF) {
 		this.gltf = gltf;
 		this.model = deepClone(gltf.scene);
+		
+		//When character based object instantitaed it will add it to scene automaticly because of this line
 		Game.game.scene.add(this.model);
+
 		this.mixer = new AnimationMixer(this.model);
 	}
 
@@ -46,7 +50,7 @@ export class Character {
 	stateUpdate() {}
 
 	// This method is being called every frame i guess and 
-	// at the time AnimationAction is not null|undefined, animation fadeout , animation set and play calls made here as well.
+	// at the time AnimationAction is not null|undefined, animation fadeout , animation set and  play calls made here as well.
 	setState(state: CharacterState) {
 		if (state == this.currentState || !this.currentAnimation) return;
 		if (this.currentAnimation.getEffectiveWeight() < 1) return;

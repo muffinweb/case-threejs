@@ -23,7 +23,9 @@ export class Game {
 	enemiesArray: Enemy[] = [];
 	renderer: THREE.WebGLRenderer;
 
-	debugMode: boolean = false;
+	// Woah! Setting this true will be helpful!
+	debugMode: boolean = true;
+	
 	stats?: Stats;
 	cannonDebugRenderer?: CannonDebugRenderer;
 
@@ -82,7 +84,11 @@ export class Game {
 					console.log(gltf);
 
 					const enemyPos = new THREE.Vector3(-5, 0, 0);
-					this.enemiesArray.push(new Enemy(gltf, enemyPos));
+
+					//create enemy and attached his target player
+					let enemyFirst = new Enemy(gltf, enemyPos);
+					
+					this.enemiesArray.push(enemyFirst);
 				});
 
 				// adding cameraController

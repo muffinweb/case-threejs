@@ -36,6 +36,9 @@ export class Player extends Character {
 		this.type = CharactersTypes.PLAYER;
 		this.collider = this.CreateCollider();
 		Game.game.cannonWorld.addBody(this.collider);
+
+		console.log(this.collider.collisionResponse);
+
 		document.addEventListener("keydown", this.onDocumentKey, false);
 		document.addEventListener("keyup", this.onDocumentKey, false);
 
