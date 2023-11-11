@@ -29,6 +29,7 @@ export class Player extends Character {
 	onDocumentKey = (e: KeyboardEvent) => {
 		this.keyMap[e.code] = e.type === "keydown";
 	};
+	
 	constructor(gltf: GLTF) {
 		super(gltf);
 		this.model.rotateY(-Math.PI / 2);

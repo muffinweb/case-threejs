@@ -13,7 +13,9 @@ document.body.appendChild(renderer.domElement);
 
 const game = new Game(scene, renderer);
 
+// this is recalculate browser width/height values and helps good rendering after changing browser window's size through mouse
 window.addEventListener("resize", onWindowResize, false);
+
 function onWindowResize() {
 	if (game.camera) {
 		game.camera.aspect = window.innerWidth / window.innerHeight;

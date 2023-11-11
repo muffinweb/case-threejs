@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
+
 export function rotateTo(angle: number, targetAngle: number, rotationSpeed: number): number {
 	targetAngle += targetAngle < 0 ? 2 * Math.PI : 0;
 	angle += angle < 0 ? 2 * Math.PI : 0;
