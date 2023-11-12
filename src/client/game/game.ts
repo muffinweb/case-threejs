@@ -24,7 +24,7 @@ export class Game {
 	renderer: THREE.WebGLRenderer;
 
 	// Woah! Setting this true will be helpful!
-	debugMode: boolean = true;
+	debugMode: boolean = false;
 	
 	stats?: Stats;
 	cannonDebugRenderer?: CannonDebugRenderer;
