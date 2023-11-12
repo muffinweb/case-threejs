@@ -18,7 +18,7 @@ export class LightController {
 
 	constructor(player: Player) {
 		this.dirLight = Game.game.directionalLight!;
-		console.log(this.dirLight);
+		//console.log(this.dirLight);
 		const directionalLightTarget = new Object3D();
 		directionalLightTarget.position.set(0, 0, -1);
 

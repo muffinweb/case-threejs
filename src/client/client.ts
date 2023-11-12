@@ -39,7 +39,7 @@ function animate() {
 
 function render() {
 	if (game.camera) {
-		renderer.render(scene, game.camera);
+		//renderer.render(scene, game.camera);
 	}
 }
 animate();

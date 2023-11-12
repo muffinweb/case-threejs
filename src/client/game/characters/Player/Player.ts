@@ -29,7 +29,6 @@ export class Player extends Character {
 	onDocumentKey = (e: KeyboardEvent) => {
 		this.keyMap[e.code] = e.type === "keydown";
 	};
-	
 	constructor(gltf: GLTF) {
 		super(gltf);
 		this.model.rotateY(-Math.PI / 2);
@@ -37,8 +36,6 @@ export class Player extends Character {
 		this.type = CharactersTypes.PLAYER;
 		this.collider = this.CreateCollider();
 		Game.game.cannonWorld.addBody(this.collider);
-
-		console.log(this.collider.collisionResponse);
 
 		document.addEventListener("keydown", this.onDocumentKey, false);
 		document.addEventListener("keyup", this.onDocumentKey, false);
@@ -158,5 +155,9 @@ export class Player extends Character {
 		// MOVE
 		this.moveAnim = this.mixer.clipAction(libAnim("RUN", this.gltf));
 		this.moveAnim.setLoop(LoopRepeat, Infinity);
+	}
+
+	getCurrentPosition(){
+		return this.model.position;
 	}
 }

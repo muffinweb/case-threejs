@@ -16,6 +16,7 @@ import {
 	MeshPhongMaterial
 } from "three";
 import { Game } from "../../game";
+import * as CANNON from "cannon-es";
 import { randFloat } from "three/src/math/MathUtils";
 // I expected CharactersTypes are able to define which character mesh skin to attach. But it seems like it just a definition
 // When I search under /src folder 'CharacterTypes' string i didn't see any defination that makes mesh according to defined character Type variable
@@ -28,17 +29,17 @@ import { Sphere } from "cannon-es";
 /**
  * Self Todo notes to learn-apply processes
  * 
- * @todo Get Collide data when player/enemy collide each other
- * @todo Make enemy rotate left/right (euler,LookAt like) [ undone ]
- * @todo Make enemy move to his forward - [ undone ]
- * @todo Get Player position as a target and rotate enemy against player and move towards player [ undone ]
+ * @todo Get Collide data when player/enemy collide each other [done]
+ * @todo Make enemy rotate left/right (euler,LookAt like) [ done ]
+ * @todo Make enemy move to his forward - [ done ]
+ * @todo Get Player position as a target and rotate enemy against player and move towards player [ done ]
  * 
  */
 
 export class Enemy extends Character {
 	
 	direction: Vector3 = new Vector3();
-	speed: number = 3;
+	speed: number = 0.3;
 	angleY: number = 0;
 	playerDetectingRadius: number = 4;
 	initialrot: Vector3 = new Vector3();    
@@ -51,15 +52,28 @@ export class Enemy extends Character {
 		this.keyMap[e.code] = e.type === "keydown";
 	};
 
-	// we need to collided player's data to catch or rotate against him first
-	targetPlayer?: Player
+	detectionAreaMaterial: MeshPhongMaterial | undefined;
+
+	detectionAreaMesh: Mesh | undefined;
 
 	//If enemy is on alert he will run towards player 
 	isEnemyOnAlert: boolean = false;
+	detectionAreaCurrentColor: string = "#ff0000";
 
 	//DetectionArea Offset by Enemy
-	detectionAreaOffset: Vector3 = new Vector3(-5.2, 0, 1);
+	detectionAreaOffset: Vector3 = new Vector3(0, 0, -1);
 	
+	detectionAreaCollider: CANNON.Body | undefined;
+
+	//When i add collision listener constructor, listener works itself on start 2 times.
+	// This is deep-caused thing and i decided to make counter to make my solution work
+	detectionAreaCollisionCounter: number = 0;
+	
+	/**
+	 * 
+	 * Codes here works 2 times when project initialized. 
+	 * This makes problem adding listener here
+	 */
 	constructor(gltf: GLTF, enemyPos: Vector3 = new Vector3()) {
 		super(gltf);
 
@@ -68,18 +82,34 @@ export class Enemy extends Character {
 		
 		this.collider = this.CreateCollider();
 		Game.game.cannonWorld.addBody(this.collider);
+	
+		//Creating detectionArea Object w/ Geo, Mat, Mesh Combination
+		const detectionAreaGeo = new SphereGeometry();
+		let detectionAreaMaterial = new MeshPhongMaterial({color: this.detectionAreaCurrentColor})
+		const detectionAreaMesh = new Mesh(detectionAreaGeo, detectionAreaMaterial);
 
-		const ball = new SphereGeometry();
-		const mat = new MeshPhongMaterial({color: "#ff0000"})
-		const triangleMesh = new Mesh(ball, mat);
-		triangleMesh.position.add(this.detectionAreaOffset);
 
-		
+		// I created a SphereGeometry and i needed to attach it to enemy player.
+		// After i rotate enemy right/left, child object rotated as i hoped.  ;)
+		detectionAreaMesh.position.set(
+			this.model.position.x - this.detectionAreaOffset.x,
+			this.model.position.y - this.detectionAreaOffset.y,
+			this.model.position.z - this.detectionAreaOffset.z
+		);
+
+		this.detectionAreaCollider = this.CreateCollider(0.9);
+		Game.game.cannonWorld.addBody(this.detectionAreaCollider);
+
+
 
 
 		//This is important method. Because when you attach an object to object
 		// Child object will follow parent's position/rotation changes and applies itself (probably?)
-		this.model.attach(triangleMesh);
+		this.model.attach(detectionAreaMesh);
+
+		this.detectionAreaMesh = detectionAreaMesh;
+
+		this.detectionAreaMaterial = detectionAreaMaterial;
 
 		this.model.getWorldDirection(this.initialrot);
 
@@ -94,10 +124,19 @@ export class Enemy extends Character {
 		
 		//this.setState(CharacterState.MOVE);
 		this.setState(CharacterState.MOVE);
+		
+		// Rotate test
+		//this.model.rotation.y += 60;
+		
+		//detectionAreaMesh.material.color.set('#017f01')
 
-		this.collider?.addEventListener('collide', function(event: any){
-			//This block will be fired when this Cannon.Body collides
-			console.log(event.target.position);
+		this.detectionAreaCollider.addEventListener("collide", (e: Event)=> {
+			this.detectionAreaCollisionCounter++;
+
+			if(this.detectionAreaCollisionCounter > 1){
+				this.isEnemyOnAlert = true;
+			}
+
 		})
 	}
 
@@ -107,6 +146,9 @@ export class Enemy extends Character {
 		this.moveModel(delta);
 		this.buttonListener(delta);
 		this.stateUpdate();
+
+		//Update Detection Area Every-Frame
+		this.detectionAreaPosUpdate();
 	}
 
 	rotateToTarget(directionToTarget: Vector3){
@@ -136,20 +178,56 @@ export class Enemy extends Character {
 		this.angleY = angleY;
 	}
 
-	setTargetPlayer(player: Player){
-		this.targetPlayer = player;
-	}
-
 	stateUpdate() {
 		// If hero is visible and dummy is not following him, change it's state to move
 		// this.setState(CharacterState.MOVE);
 		// Otherwise, change it's state to idle
 
+		//There is trick here. If isMoving property is true it only sets for one time CharacterState.MOVE here
+		// Because setting CharacterState recursively effects animation clip badly.
 		if (this.isMoving === false && this.currentState != CharacterState.IDLE) {
 			this.setState(CharacterState.IDLE);
 		} else if (this.isMoving === true && this.currentState != CharacterState.MOVE) {
 			this.setState(CharacterState.MOVE);
 		}
+
+		// If enemy see player on deadzone, deadzone will turn to red and it will change state 
+		if(this.isEnemyOnAlert){
+			
+			this.isMoving = true;
+			this.setState(CharacterState.MOVE);
+			this.detectionAreaCurrentColor = '#ff0000';
+			if(Game.game.player?.model.position){
+				this.model.lookAt(Game.game.player?.model.position);
+				
+				//If enemy's distance to player is far then 3
+				// Enemy will stop to chase after player
+				let distance = this.model.position.distanceTo(Game.game.player?.model.position);
+				if(distance > 10){
+					this.isEnemyOnAlert = false;
+				}else {
+				
+					// when player position minus related position equals direction vector.
+					// Using this values with velocity makes enemy run towards player.
+					let directionToPlayer = new Vector3(
+						Game.game.player.model.position.x - this.model.position.x,
+						1,
+						Game.game.player.model.position.z - this.model.position.z
+					);
+
+					this.collider?.velocity.set(directionToPlayer.x * this.speed, directionToPlayer.y, directionToPlayer.z * this.speed);
+				}
+			}
+
+		}else{
+
+			this.setState(CharacterState.IDLE);
+			this.detectionAreaCurrentColor = '#017f01';
+		}
+
+		//Enemy is on alert, deadzone will turn into another color otherwise another color
+		// This line applies what to color related cmaterial
+		this.detectionAreaMaterial?.color.set(this.detectionAreaCurrentColor);
 	}
 
 	modelPosUpdate() {
@@ -182,10 +260,22 @@ export class Enemy extends Character {
 		}
 	}
 
+	// This will work for DetectionAreaCollider to be attached to position of parent Sphere 
+	detectionAreaPosUpdate(){
+
+		if(this.detectionAreaCollider?.position && this.model?.position){
+			this.detectionAreaCollider.position.set(
+				this.model.position.x, 
+				this.model.position.y, 
+				this.model.position.z +1.3);
+		}
+	}
+
 	moveModel(delta: number) {
 		if (!this.collider) return;
 
 		let directionSpeed = new Vector2(0, 0);
+
 		if (this.currentState == CharacterState.MOVE) {
 			directionSpeed.x = -this.moveDirection.x;
 			directionSpeed.y = -this.moveDirection.y;
@@ -218,6 +308,7 @@ export class Enemy extends Character {
 			if (this.moveDirection.x < 1) this.moveDirection.x += delta * startMultiplier;
 			this.isMoving = true;
 			pressed = true;
+			
 		}
 		if (this.keyMap["KeyS"] || this.keyMap["ArrowDown"]) {
 			if (this.moveDirection.x > -1) this.moveDirection.x -= delta * startMultiplier;

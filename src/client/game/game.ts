@@ -51,7 +51,7 @@ export class Game {
 		gltfLoader.load(
 			"models/scene.glb",
 			(gltf) => {
-				console.log(gltf);
+				//console.log(gltf);
 				this.scene.add(gltf.scene);
 
 				convertToLambert(this.scene);
@@ -74,21 +74,26 @@ export class Game {
 				
 				// Load player
 				gltfLoader.load("models/player.glb", (gltf) => {
-					console.log(gltf);
+					//console.log(gltf);
 					this.player = new Player(gltf);
 					this.cameraControl = new CameraController(this.camera!, this.player);
 					this.lightControl = new LightController(this.player);
 				});
 				// Load enemies
 				gltfLoader.load("models/enemy.glb", (gltf) => {
-					console.log(gltf);
+					//console.log(gltf);
 
 					const enemyPos = new THREE.Vector3(-5, 0, 0);
 
+					const enemySecPos = new THREE.Vector3(-10, 0, 0);
+
 					//create enemy and attached his target player
 					let enemyFirst = new Enemy(gltf, enemyPos);
+
+					let enemySecond = new Enemy(gltf, enemySecPos);
 					
 					this.enemiesArray.push(enemyFirst);
+					this.enemiesArray.push(enemySecond);
 				});
 
 				// adding cameraController
@@ -97,7 +102,7 @@ export class Game {
 				// console.log(xhr.loaded)
 			},
 			(error) => {
-				console.log(error);
+				//console.log(error);
 			}
 		);
 	}

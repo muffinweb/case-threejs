@@ -55,7 +55,7 @@ export class Character {
 		if (state == this.currentState || !this.currentAnimation) return;
 		if (this.currentAnimation.getEffectiveWeight() < 1) return;
 		if (this.changingState) return;
-		console.log(state);
+		//console.log(state); commented because it makes hard for me to debug logs
 		this.changingState = true;
 		let anim: AnimationAction | undefined;
 		let timeScale = 1;
@@ -99,8 +99,9 @@ export class Character {
 	}
 
 	// This method seems it creates collider for instantiated model and attached to it with it's shape,
-	CreateCollider(): CANNON.Body {
-		const shape = new CANNON.Sphere(0.5);
+	// (NOT with model's shape. You define shape with new CANNON.Sphere(0.5) or CANNON.Wherever(param) Shapes )
+	CreateCollider(radius: number = 0.5): CANNON.Body {
+		const shape = new CANNON.Sphere(radius);
 		let position = new Vector3();
 		this.model?.getWorldPosition(position);
 		let collider;
